@@ -1,0 +1,28 @@
+{
+    "nombre": "Jorge Herraiz Soler",
+    "porcentaje_ajuste": 65,
+    "experiencia_meses": 9,
+    "educacion": "Grado Superior en el Desarrollo de Aplicaciones Multiplataforma",
+    "habilidades": [
+        "Java",
+        "C#",
+        "Spring",
+        "SQL Server",
+        "Trabajo en equipo",
+        "Resolución de problemas",
+        "Adaptabilidad"
+    ],
+    "fortalezas": [
+        "Conocimientos en múltiples lenguajes de programación (Java, C#, Python)",
+        "Experiencia en frameworks relevantes (Spring, Hibernate)",
+        "Capacidad de adaptación a diferentes entornos tecnológicos"
+    ],
+    "areas_mejora": [
+        "Profundizar en Java EE y sus frameworks específicos (JSF, JPA)",
+        "Mejorar la experiencia en PL/SQL y Oracle",
+        "Desarrollar habilidades en herramientas de integración continua como Jenkins"
+    ],
+    "experiencia_relevante": "Jorge ha realizado prácticas como Desarrollador de aplicaciones multiplataforma en Hiberus Tecnologías de la Información, donde trabajó con Java (Spring, Hibernate) y optimización de consultas en SQL Server. También ha tenido experiencia como Técnico de Soporte TI, donde mejoró la infraestructura back-end y la experiencia del usuario en el front-end.",
+    "recomendacion": "No recomendado",
+    "timestamp": "2025-12-21_18-31-59"
+}

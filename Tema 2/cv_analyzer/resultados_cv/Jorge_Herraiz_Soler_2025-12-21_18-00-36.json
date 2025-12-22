@@ -1,0 +1,29 @@
+{
+    "nombre": "Jorge Herraiz Soler",
+    "porcentaje_ajuste": 65,
+    "experiencia_meses": 9,
+    "educacion": "Grado Superior en el Desarrollo de Aplicaciones Multiplataforma",
+    "habilidades": [
+        "C#",
+        "ASP.NET",
+        "Angular",
+        "SQL Server",
+        "Microservicios"
+    ],
+    "fortalezas": [
+        "Conocimientos en .NET y C#",
+        "Experiencia práctica en un entorno profesional",
+        "Capacidad de aprendizaje autodidacta",
+        "Habilidades en optimización de bases de datos",
+        "Adaptabilidad y flexibilidad"
+    ],
+    "areas_mejora": [
+        "Profundizar en Angular y sus mejores prácticas",
+        "Desarrollar experiencia en arquitecturas de microservicios",
+        "Mejorar el nivel de inglés a un nivel más avanzado",
+        "Aumentar la experiencia en testing y validación de funcionalidades"
+    ],
+    "experiencia_relevante": "Prácticas como Desarrollador de aplicaciones multiplataforma en Hiberus, donde trabajó con .NET (C#) y optimización de SQL Server. Experiencia adicional en soporte TI y automatización de procesos.",
+    "recomendacion": "No recomendado",
+    "timestamp": "2025-12-21_18-00-36"
+}

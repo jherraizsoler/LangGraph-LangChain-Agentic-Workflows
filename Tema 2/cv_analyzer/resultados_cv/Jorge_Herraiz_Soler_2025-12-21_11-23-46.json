@@ -1,0 +1,30 @@
+{
+    "nombre": "Jorge Herraiz Soler",
+    "porcentaje_ajuste": 60,
+    "experiencia_años": 1,
+    "educacion": "Grado Superior en el Desarrollo de Aplicaciones Multiplataforma",
+    "habilidades": [
+        ".NET",
+        "Angular",
+        "SQL Server",
+        "Microservicios",
+        "DevOps (Azure)",
+        "JavaScript",
+        "Git"
+    ],
+    "fortalezas": [
+        "Conocimientos en múltiples lenguajes de programación (Java, C#, JavaScript)",
+        "Experiencia en desarrollo backend y optimización de bases de datos",
+        "Capacidad de trabajo en equipo y adaptabilidad",
+        "Portfolio robusto con proyectos relevantes"
+    ],
+    "areas_mejora": [
+        "Experiencia práctica con .NET Core 9 (actualmente tiene experiencia con versiones anteriores)",
+        "Dominio de Angular en proyectos reales (actualmente tiene conocimientos pero no experiencia laboral directa)",
+        "Mejorar el nivel de inglés (actualmente B1, se requiere un nivel alto)",
+        "Experiencia en DevOps y Azure (actualmente tiene conocimientos, pero no experiencia práctica directa)"
+    ],
+    "experiencia_relevante": "Jorge cuenta con experiencia en desarrollo backend con .NET y optimización de consultas en SQL Server. Ha trabajado en prácticas como desarrollador de aplicaciones multiplataforma, donde ha utilizado tecnologías como Java y .NET, así como en la optimización de servidores y mejora de la experiencia del usuario en el front-end.",
+    "recomendacion": "No recomendado",
+    "timestamp": "2025-12-21_11-23-46"
+}

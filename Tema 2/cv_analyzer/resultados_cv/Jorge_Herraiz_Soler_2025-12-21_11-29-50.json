@@ -1,0 +1,30 @@
+{
+    "nombre": "Jorge Herraiz Soler",
+    "porcentaje_ajuste": 70,
+    "experiencia_años": 1,
+    "educacion": "Grado Superior en Desarrollo de Aplicaciones Multiplataforma, Grado Especialización en Inteligencia Artificial y Big Data",
+    "habilidades": [
+        "Angular",
+        "TypeScript",
+        "JavaScript",
+        "RxJS",
+        "HTML5",
+        "SCSS",
+        "Jest"
+    ],
+    "fortalezas": [
+        "Conocimiento en múltiples lenguajes de programación (Java, C#, Python, JavaScript)",
+        "Experiencia en desarrollo frontend con Angular y React",
+        "Capacidad de aprendizaje autodidacta y adaptación a nuevas tecnologías",
+        "Experiencia en proyectos prácticos y portafolio robusto"
+    ],
+    "areas_mejora": [
+        "Profundizar en el uso de herramientas de testing como Jest y SonarCloud",
+        "Mejorar la experiencia en metodologías ágiles como Scrum",
+        "Aumentar la experiencia práctica en proyectos reales con Angular y TypeScript",
+        "Familiarizarse más con herramientas de diseño como Figma y Storybook"
+    ],
+    "experiencia_relevante": "Prácticas como Desarrollador de Aplicaciones Multiplataforma en Hiberus Tecnologías, donde trabajó en frontend y backend, utilizando JavaScript y jQuery, además de su formación en Angular y TypeScript.",
+    "recomendacion": "Recomendado",
+    "timestamp": "2025-12-21_11-29-50"
+}

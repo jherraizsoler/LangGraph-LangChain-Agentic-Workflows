@@ -1,0 +1,29 @@
+{
+    "nombre": "Jorge Herraiz Soler",
+    "porcentaje_ajuste": 65,
+    "experiencia_años": 1,
+    "educacion": "Grado Superior en el Desarrollo de Aplicaciones Multiplataforma",
+    "habilidades": [
+        ".NET Core",
+        "Angular",
+        "SQL Server",
+        "Microservicios",
+        "DevOps (Azure)",
+        "JavaScript"
+    ],
+    "fortalezas": [
+        "Conocimientos en múltiples lenguajes de programación",
+        "Experiencia en proyectos prácticos",
+        "Capacidad de adaptación y aprendizaje rápido",
+        "Mentalidad proactiva y colaborativa"
+    ],
+    "areas_mejora": [
+        "Mejorar el nivel de inglés (actualmente B1)",
+        "Adquirir más experiencia en DevOps y Azure",
+        "Profundizar en arquitecturas de microservicios",
+        "Aumentar la experiencia en proyectos internacionales"
+    ],
+    "experiencia_relevante": "Jorge ha trabajado en el desarrollo de aplicaciones multiplataforma utilizando .NET y Java, además de haber realizado prácticas en Hiberus Tecnologías donde se enfocó en la optimización de procesos y la mejora de la experiencia del usuario. Su experiencia incluye el uso de SQL Server y herramientas de desarrollo como Visual Studio y Git.",
+    "recomendacion": "No recomendado",
+    "timestamp": "2025-12-21_11-25-00"
+}
