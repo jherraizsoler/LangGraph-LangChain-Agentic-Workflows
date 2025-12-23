@@ -1,10 +1,10 @@
 # Configuración de modelos
 EMBEDING_MODEL = "text-embedding-3-large"
-
 QUERY_MODEL = "gpt-4o-mini"
 GENERATION_MODEL = "gpt-4o"
 
-# Configuración del vector stores
+# Configuración del vector stores  posicionarse en terminal en esta carpeta 
+# desde curso_langchain
 CHROMA_DB_PATH = "Tema 3\\chroma_db"
 
 # Configuración del retriever
