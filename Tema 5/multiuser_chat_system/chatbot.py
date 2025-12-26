@@ -20,7 +20,7 @@ class ModernChatbot:
             temperature=DEFAULT_TEMPERATURE
         )
 
-        # Template del sistema con contexto dinamico
+        # Template del sistema con contexto dinámico
         self.system_template = """Eres un asistente personal inteligente y amigable.
 
 Características de tu personalidad:
@@ -34,8 +34,8 @@ Características de tu personalidad:
 
 Usa esta información para personalizar tus respuestas, pero no menciones explícitamente que tienes memoria a menos que sea relevante para la conversación."""
 
-        # Configurar el trimming de mensajes para gestion del contexto
-        self.message_trimeer = trim_messages(
+        # Configurar el trimming de mensajes para gestión del contexto
+        self.message_trimmer = trim_messages(
             strategy="last",
             max_tokens=4000,
             token_counter=self.llm,
@@ -47,7 +47,7 @@ Usa esta información para personalizar tus respuestas, pero no menciones explí
         self.app = self._create_app()
 
     def _create_app(self):
-        """Crea la aplicacion de LangGraph con estado extendido."""
+        """Crea la aplicación de LangGraph con estado extendido."""
         workflow = StateGraph(state_schema=MemoryState)
 
         def memory_retrieval_node(state):
@@ -79,7 +79,7 @@ Usa esta información para personalizar tus respuestas, pero no menciones explí
             messages = state['messages']
 
             # Aplicar trimming inteligente
-            trimmed_messages = self.message_trimeer.invoke(messages)
+            trimmed_messages = self.message_trimmer.invoke(messages)
 
             return {"messages": trimmed_messages}
         

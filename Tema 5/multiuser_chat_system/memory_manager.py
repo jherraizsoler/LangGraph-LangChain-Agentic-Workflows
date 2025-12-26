@@ -9,7 +9,7 @@ from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field
 
@@ -24,7 +24,7 @@ class MemoryState(TypedDict):
     last_memory_extraction: Optional[str] # Ultimo mensaje procesado para memorias
 
 class ExtractedMemory(BaseModel):
-    """Modelo para memoria extraida estructurada."""
+    """Modelo para memoria extraída estructurada."""
     category: str = Field(description="Categoria: personal, profesional, preferencias, hecho_importantes")
     content: str = Field(description="Contenido de la memoria")
     importance: int = Field(description="Importancia del 1 al 5", ge=1, le=5)
@@ -40,7 +40,7 @@ class ModernMemoryManager:
         self.chromadb_path = os.path.join(self.user_dir, "chromadb")
         self._init_vector_db()
 
-        # Sistema de extraccion inteligente de memoria transversal
+        # Sistema de extracción inteligente de memoria transversal
         self._init_extraction_system()
 
         # Ruta de la base de datos LangGraph
@@ -68,7 +68,7 @@ class ModernMemoryManager:
             self.collection = None
     
     def _init_extraction_system(self):
-        """Inicializa el sistema de extraccion inteligente de memoria transversal."""
+        """Inicializa el sistema de extracción inteligente de memoria transversal."""
         try:
             self.extraction_llm = ChatOpenAI(model=DEFAULT_MODEL, temperature=0)
             self.memory_parser = PydanticOutputParser(pydantic_object=ExtractedMemory)
@@ -95,15 +95,15 @@ Si no contiene información relevante para recordar, responde con categoría "no
             self.extraction_chain = self.extraction_template | self.extraction_llm | self.memory_parser
         
         except Exception as e:
-            print(f"Error inicializando el sistema de extraccion: {e}")
+            print(f"Error inicializando el sistema de extracción: {e}")
             self.extraction_chain = None
 
-    # === GESTION DE CHATS (hibrido: JSON ligero + LangGraph para persistencia) ===
+    # === GESTIÓN DE CHATS (híbridos: JSON ligero + LangGraph para persistencia) ===
 
     def get_user_chats(self):
         """Obtiene todos los chats del usuario."""
         try:
-            # Si no existe archivo de metadatos, retornar vacio
+            # Si no existe archivo de metadatos, retornar vació
             chats_meta_file = os.path.join(self.user_dir, "chats_meta.json")
             if not os.path.exists(chats_meta_file):
                 return []
@@ -112,7 +112,7 @@ Si no contiene información relevante para recordar, responde con categoría "no
             with open(chats_meta_file, 'r', encoding='utf-8') as f:
                 chats_data = json.load(f)
 
-            # Ordenar por ultima actualizacion
+            # Ordenar por ultima actualización
             chats_data.sort(key=lambda x: x.get('updated_at', ''), reverse=True)
             return chats_data
         
@@ -236,7 +236,7 @@ Título:""",
     # === MEMORIA VECTORIAL ===
 
     def save_vector_memory(self, text: str, metadata: Optional[Dict] = None):
-        """Guarda informacion en la memoria vectorial."""
+        """Guarda información en la memoria vectorial."""
         if not self.collection:
             return ""
         
@@ -263,7 +263,7 @@ Título:""",
         
     
     def search_vector_memory(self, query: str, k: int = MAX_VECTOR_RESULTS):
-        """Busca informacion relevante en la memoria vectorial."""
+        """Busca información relevante en la memoria vectorial."""
         if not self.collection:
             return []
         
@@ -303,7 +303,7 @@ Título:""",
             print(f"Error obteniendo memorias vectoriales: {e}")
             return []
         
-    # === EXTRACCION INTELIGENTE ===
+    # === EXTRACCIÓN INTELIGENTE ===
 
     def extract_and_store_memories(self, user_message: str):
         """Extrae y almacena memorias usando LLM"""
