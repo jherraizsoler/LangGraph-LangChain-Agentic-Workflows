@@ -36,22 +36,26 @@ class ModernMemoryManager:
 
     def __init__(self, user_id: str):
         self.user_id = user_id
-        self.user_dir = os.path.join(USERS_DIR, user_id)
-        os.makedirs(self.user_dir, exist_ok=True)
+        self.user_path = os.path.join(USERS_DIR, user_id)
+        os.makedirs(self.user_path, exist_ok=True)
 
         # Base de datos vectorial chromadb para memoria transversal
-        self.chromadb_path = os.path.join(self.user_dir, "chromadb")
+        self.chromadb_path = os.path.join(self.user_path, "chromadb")
         self._init_vector_db()
 
         # Sistema de extracción inteligente de memoria transversal
         self._init_extraction_system()
 
         # Ruta de la base de datos LangGraph
-        self.langgraph_db_path = os.path.join(self.user_dir, "langgraph_memory.db")
+        self.langgraph_db_path = os.path.join(self.user_path, "langgraph_memory.db")
 
     def _init_vector_db(self):
         """Inicializa la base de datos vectorial chromadb"""
         try:
+            # Verificar que el directorio existe
+            if not os.path.exists(self.chromadb_path):
+                os.makedirs(self.chromadb_path, exist_ok=True)
+            
             self.vectorstore = Chroma(
                 collection_name=f"memoria_{self.user_id}",
                 embedding_function=OpenAIEmbeddings(model="text-embedding-3-large"),
@@ -65,9 +69,12 @@ class ModernMemoryManager:
                 self.collection = self.client.create_collection(f"memoria_{self.user_id}")
 
         except Exception as e:
-            print(f"Error inicializando Chromadb: {e}")
+            # Solo mostrar error si NO es por archivos eliminados
+            if "Could not connect to tenant" not in str(e):
+                print(f"Error inicializando Chromadb: {e}")
             self.vectorstore = None
             self.collection = None
+            self.client = None
     
     def _init_extraction_system(self):
         """Inicializa el sistema de extracción inteligente de memoria transversal."""
@@ -106,7 +113,7 @@ Si no contiene información relevante para recordar, responde con categoría "no
         """Obtiene todos los chats del usuario."""
         try:
             # Si no existe archivo de metadatos, retornar vació
-            chats_meta_file = os.path.join(self.user_dir, "chats_meta.json")
+            chats_meta_file = os.path.join(self.user_path, "chats_meta.json")
             if not os.path.exists(chats_meta_file):
                 return []
             
@@ -125,7 +132,7 @@ Si no contiene información relevante para recordar, responde con categoría "no
     def _save_chats_metadata(self, chats_data):
         """Guarda metadatos ligeros del chat."""
         try:
-            chats_meta_file = os.path.join(self.user_dir, "chats_meta.json")
+            chats_meta_file = os.path.join(self.user_path, "chats_meta.json")
             with open(chats_meta_file, 'w', encoding='utf-8') as f:
                 json.dump(chats_data, f, indent=2, ensure_ascii=False)
 
@@ -352,32 +359,54 @@ Título:""",
     
     # === CERRAR CONEXIONES BORRAR USUARIO ===
     def close_connections(self):
-        """Cierre ultra-agresivo para liberar archivos bloqueados por Chroma/SQLite."""
+        """Cierra explícitamente TODO para liberar archivos en Windows."""
         try:
-            # 1. Liberar el vectorstore de LangChain
+            # 1. Cerrar VECTORSTORE (LangChain wrapper)
             if hasattr(self, 'vectorstore') and self.vectorstore:
-                # Accedemos al cliente interno si existe para forzar cierre
-                if hasattr(self.vectorstore, "_client"):
-                    self.vectorstore._client.clear_system_cache()
+                # LangChain Chroma no permite modificar _collection, solo limpiamos la referencia
                 self.vectorstore = None
             
-            # 2. Liberar el cliente de Chroma
+            # 2. Cerrar COLLECTION (ChromaDB nativo)
+            if hasattr(self, 'collection') and self.collection:
+                self.collection = None
+            
+            # 3. Cerrar CLIENT (ChromaDB PersistentClient) - MUY IMPORTANTE
             if hasattr(self, 'client') and self.client:
                 try:
-                    self.client.clear_system_cache()
-                except:
+                    # ChromaDB 0.4.x+ tiene _system.stop()
+                    if hasattr(self.client, '_system'):
+                        if hasattr(self.client._system, 'stop'):
+                            self.client._system.stop()
+                except Exception as e:
+                    # Silenciar errores de cierre (ya no importan)
                     pass
-                self.client = None
+                finally:
+                    self.client = None
             
-            # 3. Forzar a Python a soltar los 'File Handles'
-            import gc
-            import time
+            # 4. Limpiar embeddings y extraction chain
+            if hasattr(self, 'embeddings'):
+                self.embeddings = None
+            if hasattr(self, 'extraction_chain'):
+                self.extraction_chain = None
+            if hasattr(self, 'extraction_llm'):
+                self.extraction_llm = None
+            if hasattr(self, 'memory_parser'):
+                self.memory_parser = None
+            
+            # 5. Forzar limpieza AGRESIVA
             gc.collect()
-            time.sleep(0.5) # Pausa para que el SO registre el cierre
+            time.sleep(0.2)
+            gc.collect()
             
-            print("[+] Conexiones cerradas y memoria liberada.")
+            print(f"✅ Memoria vectorial liberada para {self.user_id}")
+            
         except Exception as e:
-            print(f"[-] Error en el cierre nuclear: {e}")
+            print(f"⚠️ Error en close_connections: {e}")
+            # Aunque haya error, intentar limpiar referencias
+            self.vectorstore = None
+            self.collection = None
+            self.client = None
+            gc.collect()
 
 class UserManager:
     """Gestor simplificado de usuarios"""
@@ -414,27 +443,71 @@ class UserManager:
             print(f"Error creando usuario: {e}")
             return False
 
+   
     @staticmethod
     def delete_user_completely(user_id):
-        import shutil, time, gc, os
         from config import USERS_DIR
         user_path = os.path.join(USERS_DIR, user_id)
         
         if not os.path.exists(user_path):
             return True
 
-        for i in range(5):
+        # ESTRATEGIA: Intentar eliminar archivos problemáticos específicos primero
+        problematic_files = [
+            os.path.join(user_path, "chromadb", "chroma.sqlite3"),
+            os.path.join(user_path, "chromadb", "chroma.sqlite3-wal"),
+            os.path.join(user_path, "chromadb", "chroma.sqlite3-shm"),
+            os.path.join(user_path, "langgraph_checkpoints.sqlite"),
+            os.path.join(user_path, "langgraph_checkpoints.sqlite-wal"),
+            os.path.join(user_path, "langgraph_checkpoints.sqlite-shm"),
+            os.path.join(user_path, "langgraph_memory.db"),
+            os.path.join(user_path, "langgraph_memory.db-wal"),
+            os.path.join(user_path, "langgraph_memory.db-shm"),
+        ]
+        
+        # Intentar eliminar archivos SQLite específicos primero
+        for file_path in problematic_files:
+            if os.path.exists(file_path):
+                for i in range(3):
+                    try:
+                        os.remove(file_path)
+                        print(f"✅ Eliminado: {os.path.basename(file_path)}")
+                        break
+                    except PermissionError:
+                        time.sleep(0.5)
+                        gc.collect()
+                    except Exception as e:
+                        print(f"⚠️ No se pudo eliminar {os.path.basename(file_path)}: {e}")
+                        break
+
+        # Ahora intentar eliminar toda la carpeta
+        for i in range(8):
             try:
                 gc.collect()
-                # Pausa incremental más larga: 1s, 2s, 3s...
-                time.sleep(i + 1) 
+                time.sleep(0.5 + (i * 0.3))  # Espera progresiva
                 
-                # Intentamos borrar
                 shutil.rmtree(user_path)
+                print(f"✅ Carpeta {user_id} eliminada completamente")
                 return True
-            except PermissionError:
-                print(f"[!] Archivo bloqueado por Windows (Intento {i+1}). Reintentando...")
-                # OPCIONAL: Si falla mucho, podrías intentar borrar archivo por archivo
-                # pero normalmente rmtree es lo mejor.
+                
+            except PermissionError as e:
+                print(f"[!] Archivo bloqueado (Intento {i+1}/8): {e}")
+                
+                # En el último intento, intentar renombrar en lugar de eliminar
+                if i == 7:
+                    try:
+                        import uuid
+                        trash_path = os.path.join(USERS_DIR, f"_deleted_{user_id}_{uuid.uuid4().hex[:8]}")
+                        os.rename(user_path, trash_path)
+                        print(f"⚠️ Carpeta renombrada a: {os.path.basename(trash_path)}")
+                        print("💡 Puedes eliminarla manualmente cuando Windows libere los archivos")
+                        return True  # Consideramos éxito porque el usuario ya no aparecerá
+                    except:
+                        pass
                 continue
+                
+            except Exception as e:
+                print(f"❌ Error inesperado: {e}")
+                return False
+        
         return False

@@ -7,6 +7,8 @@ from langchain_openai import ChatOpenAI
 from memory_manager import ModernMemoryManager, MemoryState
 from config import DEFAULT_MODEL, DEFAULT_TEMPERATURE
 import os
+import gc
+import time
 
 class ModernChatbot:
 
@@ -42,6 +44,13 @@ Usa esta información para personalizar tus respuestas, pero no menciones explí
             start_on="human",
             include_system=True
         )
+
+        # GUARDAR LA CONEXIÓN COMO PROPIEDAD
+        self.db_path = os.path.join(self.memory_manager.user_path, "langgraph_checkpoints.sqlite")
+        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        
+        # Usar la conexión guardada
+        self.checkpointer = SqliteSaver(self.conn)
 
         # Crear aplicacion de LangGraph
         self.app = self._create_app()
@@ -149,7 +158,7 @@ Usa esta información para personalizar tus respuestas, pero no menciones explí
 
         # Configurar persistente con SqliteSaver
         db_path = os.path.join(
-            self.memory_manager.user_dir,
+            self.memory_manager.user_path,
             "langgraph_memory.db"
         )
 
@@ -237,29 +246,68 @@ Usa esta información para personalizar tus respuestas, pero no menciones explí
             return False
     
     def delete_chat_from_langgraph(self, chat_id: str) -> bool:
-        """Elimina un chat de la base de datos SQLite de LangGraph del usuario."""
-        conn = None
+        """Elimina un chat de la base de datos usando la conexión existente."""
         try:
             thread_id = f"user_{self.user_id}_chat_{chat_id}"
-            # Usamos la ruta que ya definiste en el __init__
-            db_path = self.langgraph_db_path 
             
-            # Conectar específicamente a la DB del usuario
-            conn = sqlite3.connect(db_path)
-            cursor = conn.cursor()
+            # 1. IMPORTANTE: Usamos self.conn que ya está abierta desde el __init__
+            # No creamos una nueva conexión para evitar el bloqueo de Windows
+            cursor = self.conn.cursor()
             
-            # Eliminar registros de las tablas de LangGraph
+            # 2. Eliminar registros de las tablas de LangGraph
             cursor.execute("DELETE FROM writes WHERE thread_id = ?", (thread_id,))
             cursor.execute("DELETE FROM checkpoints WHERE thread_id = ?", (thread_id,))
             
-            conn.commit()
+            self.conn.commit()
+            print(f"✅ Registros del chat {chat_id} eliminados de SQLite.")
             return True
         except Exception as e:
-            print(f"Error eliminando chat de LangGraph: {e}")
+            print(f"❌ Error eliminando chat de LangGraph: {e}")
             return False
-        finally:
-            if conn:
-                conn.close() # ESTO LIBERA EL ARCHIVO PARA QUE WINDOWS PERMITA BORRARLO
+        # NOTA: No cerramos la conexión aquí (no hay finally conn.close())
+        # porque la conexión se mantiene viva para el resto del chat.
+                
+    def close_all(self):
+        """Libera todos los recursos antes de morir."""
+        try:
+            # 1. Cerrar conexión SQLite PRIMERO (es crítico)
+            if hasattr(self, 'conn') and self.conn:
+                try:
+                    self.conn.close()
+                    print(f"🔒 Conexión SQLite cerrada para {self.user_id}")
+                except Exception as e:
+                    print(f"⚠️ Error cerrando SQLite: {e}")
+                finally:
+                    self.conn = None
+            
+            # 2. Cerrar checkpointer si existe
+            if hasattr(self, 'checkpointer') and self.checkpointer:
+                try:
+                    if hasattr(self.checkpointer, 'conn'):
+                        self.checkpointer.conn.close()
+                except:
+                    pass
+                self.checkpointer = None
+            
+            # 3. Cerrar memoria vectorial (Chroma)
+            if hasattr(self, 'memory_manager') and self.memory_manager:
+                self.memory_manager.close_connections()
+                self.memory_manager = None
+            
+            # 4. Limpiar referencias al LLM y app
+            self.llm = None
+            self.app = None
+            self.message_trimmer = None
+            
+            # 5. Forzar recolección de basura MÚLTIPLES VECES
+            gc.collect()
+            time.sleep(0.3)  # Dar tiempo a Python
+            gc.collect()
+            
+            print(f"✅ Todos los recursos cerrados para {self.user_id}")
+            
+        except Exception as e:
+            print(f"❌ Error al cerrar recursos: {e}")
 class ChatbotManager:
 
     _instances = {}
@@ -272,12 +320,24 @@ class ChatbotManager:
 
         return cls._instances[user_id]
     
+    # En chatbot.py
     @classmethod
     def remove_chatbot(cls, user_id):
-        """Elimina una instancia de chatbot"""
+        """Elimina una instancia de chatbot liberando recursos PRIMERO"""
         if user_id in cls._instances:
+            # 1. Recuperamos la instancia ANTES de borrarla
+            instancia = cls._instances[user_id]
+            
+            # 2. Llamamos al método que cierra SQLite y Chroma
+            instancia.close_all()
+            
+            # 3. Ahora sí, la borramos del diccionario global
             del cls._instances[user_id]
-
+            
+            # 4. Forzamos a Python a limpiar la RAM inmediatamente
+            gc.collect()
+            print(f"🗑️ Memoria global y archivos liberados para {user_id}")
+    
     @classmethod
     def clear_all(cls):
         """Limpia toas las instancias de chatbot"""
