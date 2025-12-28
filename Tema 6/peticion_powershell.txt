@@ -1,0 +1,17 @@
+Invoke-RestMethod -Uri "http://localhost:8000/health" -Method GET
+
+
+$alertPayload = @{
+    source = "proxy"
+    alert_type = "Malicious URL detection"
+    severity = "High"
+    message = "Actividad sospechosa detectada desde el proxy con un URL"
+    source_ip = "112.246.22.120"
+    url = "http://112.246.22.120:37153/bin.sh"
+    file_hash = "4293c1d8574dc87c58360d6bac3daa182f64f7785c9d41da5e0741d2b1817fc7"
+    email_recipient = "engineer.education.colab@gmail.com"
+    timestamp = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss")
+    real_apis = $true
+} | ConvertTo-Json
+
+$response = Invoke-RestMethod -Uri "http://localhost:8000/webhook/alert" -Method POST -Body $alertPayload -ContentType "application/json"

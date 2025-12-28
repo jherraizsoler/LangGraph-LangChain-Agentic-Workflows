@@ -1,0 +1,12 @@
+f"""ALERTA SOC PARA PROCESAMIENTO SECUENCIAL:
+
+ID: {incident_id}
+DATOS: {json.dumps(alert_data, indent=2)}
+EMAIL: {processing_context.get('email_recipient', 'engineer.education.colab@gmail.com')}
+
+INSTRUCCIÓN CLARA: Ejecutar EXACTAMENTE estos 3 pasos:
+1. alert_analyzer → análisis IOCs y determinar VERDADERO/FALSO POSITIVO
+2. SI verdadero positivo → threat_analyzer → evaluación severidad y mitigación  
+3. notification_agent → envío email final
+
+TERMINAR después del paso 3. NO continuar."""
