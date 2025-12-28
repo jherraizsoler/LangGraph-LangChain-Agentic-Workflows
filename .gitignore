@@ -23,3 +23,4 @@ dist/
 build/
 *.egg-info/
 Tema 6/credentials.json
+Tema 6/token.json
